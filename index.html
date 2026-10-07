@@ -291,7 +291,7 @@ const ANNIVERSARY = {
   enabled: true,
   showAfterSwipes: 5,
   name: "Mike",
-  age: "∞",
+  age: 36,
   species: "Human (allegedly)",
   distance: "Right next to you",
   bio: "Swiped right on you once and never looked back. Still pretty sure you're a plant. Happy anniversary. 🌱",
@@ -612,9 +612,7 @@ const PLANTS = {
       ${smallLeaf(100, 116, -58, 1.15, "#6cc04a")}${smallLeaf(100, 116, 58, 1.15, "#7fd35a")}`];
   },
   mike() {
-    const skin = "#f3c9a6", skinD = "#e2ad88", hair = "#4a3426", jacket = "#26262b", seam = "#3d3d44", shirt = "#22304f";
-    const flowers = [[94, 184], [105, 196], [95, 212], [106, 226], [98, 236], [101, 172]].map(([x, y], i) =>
-      `<circle cx="${x}" cy="${y}" r="2.6" fill="#f08a7e"/><ellipse cx="${x + (i % 2 ? -4 : 4)}" cy="${y + 4}" rx="3" ry="1.4" fill="#f6b3a7" transform="rotate(${i % 2 ? 30 : -30} ${x} ${y})"/>`).join("");
+    const skin = "#f3c9a6", skinD = "#e2ad88", hair = "#4a3426", jacket = "#26262b", seam = "#3d3d44", tee = "#f7f7f4";
     return [`
       <circle cx="100" cy="98" r="78" fill="#fff" opacity=".22"/>
       <path d="M20 240 Q24 186 70 170 Q86 165 100 167 Q114 165 130 170 Q176 186 180 240 Z" fill="${jacket}"/>
@@ -622,12 +620,10 @@ const PLANTS = {
         <path d="M36 196 Q54 180 74 176"/><path d="M33 205 Q52 189 73 184"/><path d="M164 196 Q146 180 126 176"/><path d="M167 205 Q148 189 127 184"/>
       </g>
       <path d="M44 214 L72 212" stroke="#5a5a62" stroke-width="2.5" stroke-linecap="round"/><rect x="69" y="211" width="3.5" height="8" rx="1" fill="#8c8c94"/>
-      <rect x="86" y="132" width="28" height="40" rx="8" fill="${skinD}"/>
-      <path d="M85 166 L115 166 L109 240 L91 240 Z" fill="${shirt}"/>
-      ${flowers}
-      <path d="M84 162 L100 178 L88 186 Z" fill="${shirt}"/><path d="M116 162 L100 178 L112 186 Z" fill="${shirt}"/>
-      <path d="M85 166 L91 240 M115 166 L109 240" stroke="#3a3a42" stroke-width="3"/>
-      <g transform="translate(103 200) rotate(8)"><circle cx="-6" cy="0" r="5.5" fill="#1d2b2a"/><circle cx="6" cy="0" r="5.5" fill="#1d2b2a"/><path d="M-1 -1 Q0 -3 1 -1" stroke="#1d2b2a" stroke-width="2" fill="none"/><path d="M-8 -2 l3 -1.5 M4 -2 l3 -1.5" stroke="#9fd3d0" stroke-width="1.2" stroke-linecap="round"/></g>
+      <path d="M82 164 L118 164 L110 240 L90 240 Z" fill="${tee}"/>
+      <path d="M86 132 H114 V163 Q100 176 86 163 Z" fill="${skinD}"/>
+      <path d="M85 163 Q100 178 115 163" stroke="#dcdcd6" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M83 164 L90 240 M117 164 L110 240" stroke="#3a3a42" stroke-width="3"/>
       <ellipse cx="58" cy="98" rx="7.5" ry="11" fill="${skinD}"/><ellipse cx="142" cy="98" rx="7.5" ry="11" fill="${skinD}"/>
       <ellipse cx="100" cy="90" rx="42" ry="50" fill="${skin}"/>
       <ellipse cx="86" cy="56" rx="14" ry="7" fill="#fff" opacity=".4" transform="rotate(-20 86 56)"/>
