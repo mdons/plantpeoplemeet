@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7f3ea">
+<meta name="description" content="The dating app for plants. Swipe right on photosynthesis.">
+<meta property="og:title" content="PlantPeopleMeet">
+<meta property="og:description" content="The dating app for plants who are secretly catfishing as people.">
+<title>PlantPeopleMeet</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f3ea;
+    --ink: #1f3d2b;
+    --muted: #6b7d70;
+    --like: #2fbf71;
+    --nope: #ff5c6c;
+    --super: #3a9bff;
+    --pink: #ff5a7a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none;
+    background: var(--bg); color: var(--ink);
+    font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  }
+  body { position: fixed; inset: 0; }
+  button { font-family: inherit; color: inherit; }
+
+  .app {
+    height: 100%; max-width: 460px; margin: 0 auto;
+    display: flex; flex-direction: column;
+    padding: calc(env(safe-area-inset-top) + 6px) 16px calc(env(safe-area-inset-bottom) + 14px);
+  }
+
+  /* Header */
+  header { flex: none; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { display: flex; align-items: center; gap: 8px; font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
+  .logo b { color: var(--pink); font-weight: 700; }
+  .logo svg { width: 28px; height: 28px; }
+  .icon-btn {
+    position: relative; width: 44px; height: 44px; border-radius: 50%; border: none;
+    background: #fff; box-shadow: 0 2px 10px rgba(31,61,43,.12);
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .icon-btn svg { width: 22px; height: 22px; }
+  .badge {
+    position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px;
+    border-radius: 10px; background: var(--pink); color: #fff; font-size: 12px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+  .badge:empty { display: none; }
+  .badge.bump { animation: bump .4s; }
+
+  /* Card deck */
+  .deck { position: relative; flex: 1; min-height: 0; margin: 6px 0 16px; touch-action: none; }
+  .card {
+    position: absolute; inset: 0; border-radius: 24px; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(31,61,43,.18);
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    transition: transform .35s cubic-bezier(.2,.8,.3,1.1);
+    will-change: transform; cursor: grab;
+  }
+  .card:active { cursor: grabbing; }
+  .card.pos-0 { z-index: 3; }
+  .card.pos-1 { z-index: 2; transform: scale(.94); pointer-events: none; }
+  .card.pos-2 { z-index: 1; transform: scale(.88); pointer-events: none; }
+
+  .art { position: absolute; top: 0; left: 0; right: 0; bottom: 32%; display: flex; align-items: center; justify-content: center; padding-top: 18px; }
+  .art svg { height: 100%; max-width: 92%; }
+
+  .info {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 64px 20px 18px; color: #fff;
+    background: linear-gradient(to top, rgba(18,40,26,.94) 0%, rgba(18,40,26,.82) 62%, rgba(18,40,26,0) 100%);
+  }
+  .info h2 { margin: 0; font-family: 'Fraunces', serif; font-size: 30px; line-height: 1.1; letter-spacing: -0.01em; }
+  .info h2 span { font-family: 'Nunito', sans-serif; font-weight: 400; font-size: 24px; opacity: .9; }
+  .meta { margin-top: 4px; font-size: 14px; opacity: .85; display: flex; flex-wrap: wrap; gap: 2px 12px; }
+  .bio {
+    margin: 10px 0 0; font-size: 15.5px; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .more { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+  .card.expanded .more { max-height: 320px; }
+  .card.expanded .bio { -webkit-line-clamp: unset; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tags span { font-size: 13px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.16); }
+  .prompt { margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.1); }
+  .prompt small { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; opacity: .7; margin-bottom: 3px; }
+  .prompt div { font-family: 'Fraunces', serif; font-size: 17px; line-height: 1.3; }
+  .hint { margin-top: 10px; font-size: 12px; opacity: .55; text-align: center; }
+  .card.expanded .hint::after { content: 'Tap to show less'; }
+  .card:not(.expanded) .hint::after { content: 'Tap for more'; }
+
+  .stamp {
+    position: absolute; z-index: 5; top: 30px; padding: 4px 12px;
+    font-weight: 800; font-size: 32px; letter-spacing: .04em; line-height: 1;
+    border: 4px solid; border-radius: 10px; opacity: 0; pointer-events: none;
+    background: rgba(255,255,255,.35);
+  }
+  .stamp.like { left: 22px; color: var(--like); transform: rotate(-14deg); }
+  .stamp.nope { right: 22px; color: var(--nope); transform: rotate(14deg); }
+  .stamp.super { top: 36%; left: 50%; color: var(--super); transform: translateX(-50%) rotate(-8deg); text-align: center; font-size: 26px; }
+
+  /* Action buttons */
+  .actions { flex: none; display: flex; justify-content: center; align-items: center; gap: 22px; }
+  .act {
+    border: none; background: #fff; border-radius: 50%; cursor: pointer;
+    display: grid; place-items: center;
+    box-shadow: 0 4px 14px rgba(31,61,43,.15);
+    transition: transform .15s;
+  }
+  .act:active { transform: scale(.86); }
+  .act.big { width: 66px; height: 66px; }
+  .act.small { width: 52px; height: 52px; }
+  .act svg { width: 48%; height: 48%; }
+
+  /* Overlays */
+  .overlay { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 24px; text-align: center; overflow: hidden; }
+  .overlay.show { display: flex; animation: fade .3s ease; }
+
+  .intro { background: var(--bg); }
+  .intro-inner { max-width: 360px; }
+  .intro .hero { width: 170px; height: 200px; margin: 0 auto 6px; }
+  .intro h1 { font-family: 'Fraunces', serif; font-size: 36px; margin: 0 0 10px; letter-spacing: -0.02em; line-height: 1.05; }
+  .intro h1 b { color: var(--pink); }
+  .intro p { color: var(--muted); font-size: 16px; line-height: 1.5; margin: 0 0 8px; }
+  .howto { display: flex; justify-content: center; gap: 18px; margin: 20px 0 26px; font-size: 13px; color: var(--muted); }
+  .howto div { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .howto strong { font-size: 22px; }
+
+  .match { background: radial-gradient(circle at 50% 30%, rgba(46,120,72,.95), rgba(14,34,22,.97)); color: #fff; }
+  .match-inner { position: relative; z-index: 2; width: 100%; max-width: 380px; }
+  .match-title {
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 54px; margin: 0 0 10px; line-height: 1;
+    background: linear-gradient(90deg, #b8f5c8, #ffd1dc); -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: pop .55s cubic-bezier(.2,1.6,.4,1);
+  }
+  .match p { font-size: 17px; line-height: 1.45; margin: 0 auto; max-width: 320px; opacity: .92; }
+  .avatars { display: flex; justify-content: center; margin: 30px 0 34px; }
+  .avatar {
+    width: 124px; height: 124px; border-radius: 50%; border: 4px solid #fff; overflow: hidden;
+    display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  }
+  .avatar svg { height: 94%; margin-top: 6px; }
+  .avatar.you { transform: translateX(12px) rotate(-8deg); animation: inL .5s cubic-bezier(.2,1.4,.4,1); }
+  .avatar.them { transform: translateX(-12px) rotate(8deg); animation: inR .5s cubic-bezier(.2,1.4,.4,1); }
+  .btn {
+    display: block; width: 100%; max-width: 320px; margin: 10px auto 0; padding: 15px;
+    border-radius: 999px; font-weight: 800; font-size: 16px; border: none; cursor: pointer;
+  }
+  .btn.primary { background: linear-gradient(90deg, #ff5a7a, #ff8a5c); color: #fff; box-shadow: 0 6px 18px rgba(255,90,122,.35); }
+  .btn.ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.55); }
+  .btn.dark { background: var(--ink); color: #fff; }
+  .falling { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  .falling span { position: absolute; top: -50px; animation: fall linear forwards; }
+
+  /* Matches sheet */
+  .sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(15,35,22,.45); opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .sheet-bg.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 41;
+    max-width: 460px; max-height: 78%; margin: 0 auto;
+    background: #fff; border-radius: 24px 24px 0 0;
+    display: flex; flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(105%); transition: transform .32s cubic-bezier(.2,.8,.3,1);
+  }
+  .sheet.open { transform: none; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 10px; }
+  .sheet-head h3 { margin: 0; font-family: 'Fraunces', serif; font-size: 24px; }
+  .sheet-head button { border: none; background: #f0ece2; width: 34px; height: 34px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+  .sheet ul { list-style: none; margin: 0; padding: 0 16px 18px; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  .sheet li { display: flex; gap: 14px; align-items: center; padding: 12px 4px; border-bottom: 1px solid #f0ece2; }
+  .sheet li:last-child { border-bottom: none; }
+  .mini { flex: none; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; }
+  .mini svg { height: 94%; margin-top: 4px; }
+  .sheet li strong { display: block; font-size: 16px; }
+  .sheet li span { display: block; color: var(--muted); font-size: 14px; line-height: 1.35; }
+  .empty { color: var(--muted); text-align: center; padding: 10px 30px 34px; margin: 0; line-height: 1.5; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 110px); z-index: 60;
+    width: max-content; max-width: calc(100% - 40px);
+    transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 16px;
+    font-size: 14.5px; line-height: 1.4; text-align: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2); transition: all .3s ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .heart-beat { transform-origin: 100px 74px; animation: beat 1.2s ease-in-out infinite; }
+
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } }
+  @keyframes inL { from { transform: translateX(-160px) rotate(-30deg); opacity: 0; } }
+  @keyframes inR { from { transform: translateX(160px) rotate(30deg); opacity: 0; } }
+  @keyframes fall { to { transform: translateY(115vh) rotate(600deg); } }
+  @keyframes bump { 50% { transform: scale(1.4); } }
+  @keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.15); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } }
+  @media (max-height: 640px) {
+    .info { padding-top: 48px; }
+    .info h2 { font-size: 26px; }
+    .bio { -webkit-line-clamp: 2; font-size: 14.5px; }
+    .act.big { width: 58px; height: 58px; }
+    .act.small { width: 46px; height: 46px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29 V15" stroke="#3f8f4a" stroke-width="2.6" stroke-linecap="round"/><path d="M16 17 C 8 17 4 11 5 4 C 12 4 16 9 16 17Z" fill="#5fb85a"/><path d="M16 15 C 23 15 28 10 27 3 C 20 3 16 8 16 15Z" fill="#ff7a96"/></svg>
+      <span>plantpeople<b>meet</b></span>
+    </div>
+    <button class="icon-btn" id="matchesBtn" aria-label="Your matches">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z" fill="#ff5a7a"/></svg>
+      <span class="badge" id="badge"></span>
+    </button>
+  </header>
+
+  <main class="deck" id="deck" aria-live="polite"></main>
+
+  <nav class="actions">
+    <button class="act big" id="nopeBtn" aria-label="Nope">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="#ff5c6c" stroke-width="3.2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="act small" id="superBtn" aria-label="Super like">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9z" fill="#3a9bff"/></svg>
+    </button>
+    <button class="act big" id="likeBtn" aria-label="Like">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z" fill="#2fbf71"/></svg>
+    </button>
+  </nav>
+</div>
+
+<!-- Intro -->
+<div class="overlay intro show" id="intro">
+  <div class="intro-inner">
+    <div class="hero" id="introArt"></div>
+    <h1>plantpeople<b>meet</b></h1>
+    <p>The dating app for plants who are secretly catfishing as people.</p>
+    <div class="howto">
+      <div><strong>👈</strong>Nope</div>
+      <div><strong>👆</strong>Super like</div>
+      <div><strong>👉</strong>Like</div>
+    </div>
+    <button class="btn dark" id="startBtn">Start swiping 🌱</button>
+  </div>
+</div>
+
+<!-- Match -->
+<div class="overlay match" id="match" role="dialog" aria-modal="true" aria-labelledby="matchTitle">
+  <div class="falling" id="falling"></div>
+  <div class="match-inner">
+    <h2 class="match-title" id="matchTitle">It's a Match!</h2>
+    <p id="matchText"></p>
+    <div class="avatars">
+      <div class="avatar you" id="avYou"></div>
+      <div class="avatar them" id="avThem"></div>
+    </div>
+    <button class="btn primary" id="sendBtn">Send a pickup line</button>
+    <button class="btn ghost" id="keepBtn">Keep swiping</button>
+  </div>
+</div>
+
+<!-- Matches sheet -->
+<div class="sheet-bg" id="sheetBg"></div>
+<section class="sheet" id="sheet" aria-label="Your matches">
+  <div class="sheet-head"><h3>Your Matches</h3><button id="closeSheet" aria-label="Close">✕</button></div>
+  <ul id="matchList"></ul>
+  <p class="empty" id="emptyMsg">No matches yet. Keep swiping, someone out there loves your soil.</p>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   ANNIVERSARY SURPRISE: edit this bit!
+   After `showAfterSwipes` swipes, this special profile shows up.
+   Swiping right is always a match. Swipe left and it comes back. 🙂
+   Set enabled: false to turn it off.
+   ===================================================================== */
+const ANNIVERSARY = {
+  enabled: true,
+  showAfterSwipes: 10,
+  name: "Mike",
+  age: "∞",
+  species: "Human (allegedly)",
+  distance: "Right next to you",
+  bio: "Swiped right on you once and never looked back. Still pretty sure you're a plant. Happy anniversary. 🌱",
+  tags: ["💚 Your favorite", "🪴 Secretly a plant", "🎣 Catfish (confirmed)"],
+  prompt: ["How we met", "On Tinder. Two plants pretending to be people. Somehow it worked."],
+  matchTitle: "It's a Match!",
+  matchText: "Happy anniversary. Still the best swipe I ever made. 💚",
+  secondChanceBio: "Nice try. Swipe again. 🙂"
+};
+
+/* ===================== Plant profiles ===================== */
+const BGS = [
+  ["#fde2e4", "#fbc4cf"], ["#e2f0cb", "#c7e3a6"], ["#fff1c1", "#ffd98e"], ["#d7ecff", "#b5d8f7"],
+  ["#f1e4ff", "#dcc6f7"], ["#ffe5d0", "#ffc9a3"], ["#d8f3ea", "#ade6d3"], ["#fbe7f3", "#f4c6e2"]
+];
+
+const PROFILES = [
+  { name: "Fernanda", age: 4, species: "Boston Fern", type: "fern", color: "#4f9d4a", pot: "#e07a5f", face: "happy",
+    distance: "2 windowsills away",
+    bio: "Bit of a drama queen, I'll admit it. Forget to mist me once and I'll drop leaves just to make a point.",
+    tags: ["💧 Humidity lover", "🌥️ Indirect light", "🎭 Dramatic"],
+    prompt: ["My love language is", "Misting. Twice a day. Don't make it weird."] },
+  { name: "Spike", age: 7, species: "Saguaro Cactus", type: "cactus", color: "#5c9e5a", pot: "#d9a066", face: "cool", petal: "#ff7aa2",
+    distance: "3 miles away (by tumbleweed)",
+    bio: "I know I come off prickly, but I'm soft on the inside. Super low maintenance. Water me once a month and I'm yours.",
+    tags: ["☀️ Full sun", "🏜️ Desert born", "🧘 Independent"],
+    prompt: ["Green flags I look for", "You don't try to hug me. Seriously. Don't."] },
+  { name: "Monty", age: 3, species: "Monstera Deliciosa", type: "monstera", color: "#2f8f4e", pot: "#f2efe9", face: "wink",
+    distance: "Living room, by the big window",
+    bio: "6'2\" if you count the moss pole. Yes, the holes are natural. No, you can't ask about them on the first date.",
+    tags: ["📸 Influencer", "🧗 Climber", "🌴 Tropical"],
+    prompt: ["I'm looking for", "Someone with high ceilings and low expectations."] },
+  { name: "Sunny", age: 1, species: "Sunflower", type: "sunflower", petal: "#ffc93c", pot: "#6a8caf", face: "happy",
+    distance: "The garden next door",
+    bio: "I'll literally turn to face you wherever you go. It's called heliotropism and it's not clingy, it's science.",
+    tags: ["☀️ Morning person", "🐝 Bee-friendly", "🌻 Annual (YOLO)"],
+    prompt: ["Two truths and a lie", "I'm 7 feet tall. I have 2,000 seeds. I've never been to a baseball game."] },
+  { name: "Venus", age: 2, species: "Venus Flytrap", type: "flytrap", color: "#6dbb4a", pot: "#3d405b", face: "smitten",
+    distance: "Bog, 5 miles away",
+    bio: "Looking for something that'll stick around. I'm told I can be a lot. I prefer the word 'carnivorous.'",
+    tags: ["🪰 Foodie", "🌧️ Bog life", "⚡ Fast mover"],
+    prompt: ["The way to win me over", "Bring snacks. Ideally still buzzing."] },
+  { name: "Sandy", age: 9, species: "Snake Plant", type: "snake", color: "#3f7d4f", edge: "#d6c85a", pot: "#f4f1de", face: "sleepy",
+    distance: "Dark corner of your bedroom",
+    bio: "Survived three roommates, a breakup, and a two-week vacation where nobody watered me. I'm not low effort, I'm resilient.",
+    tags: ["🌙 Night owl", "🧘 Unbothered", "🌬️ Air purifier"],
+    prompt: ["My most irrational fear", "Being overwatered. It's happened before. We don't talk about it."] },
+  { name: "Tess", age: 2, species: "Tulip", type: "tulip", petal: "#ff6f91", pot: "#ffe8d6", face: "happy",
+    distance: "Flower market, stall 4",
+    bio: "Only in bloom for two weeks a year, so let's skip the small talk.",
+    tags: ["🌷 Spring fling", "🇳🇱 Dutch heritage", "❄️ Needs a winter chill"],
+    prompt: ["Dating me is like", "A limited-edition drop. Don't sleep on it."] },
+  { name: "Al", age: 5, species: "Aloe Vera", type: "aloe", color: "#7fb685", pot: "#b5838d", face: "happy",
+    distance: "Bathroom windowsill",
+    bio: "I'm the one who soothes your sunburn. You're the one who forgets I exist until July. Let's talk about that.",
+    tags: ["🩹 Caregiver", "☀️ Sun soaker", "💧 Self-hydrating"],
+    prompt: ["I'm weirdly competitive about", "Being more useful than the cactus."] },
+  { name: "Pat", age: 3, species: "Golden Pothos", type: "pothos", color: "#7cb342", pot: "#4a6fa5", face: "smitten",
+    distance: "Top of your bookshelf",
+    bio: "Fair warning: I will grow toward you. And around the curtain rod. And possibly into the next room.",
+    tags: ["🌿 Trailing", "🫶 Clingy (affectionate)", "🏢 Office plant energy"],
+    prompt: ["I go crazy for", "A tall shelf with a long drop."] },
+  { name: "Ellie", age: 2, species: "Echeveria", type: "succulent", color: "#8fbfa9", pot: "#e9c46a", face: "happy",
+    distance: "Kitchen counter",
+    bio: "Yes, I'm photogenic. No, you can't water me on the first date. Let's take it slow.",
+    tags: ["📸 Very Instagrammable", "🪨 Gritty soil only", "💎 Rosette shaped"],
+    prompt: ["Biggest red flag", "A pot without a drainage hole."] },
+  { name: "Lily", age: 4, species: "Peace Lily", type: "tulip", petal: "#fdfdfd", pot: "#84a59d", face: "sleepy",
+    distance: "Office lobby",
+    bio: "Conflict-averse. Ignore me and I'll droop dramatically, then perk right back up the second you notice me.",
+    tags: ["🕊️ Peacemaker", "🌑 Low light is fine", "🎭 Fainting-goat energy"],
+    prompt: ["Simple pleasures", "A long drink and a quiet corner."] },
+  { name: "Fig", age: 6, species: "Fiddle Leaf Fig", type: "monstera", holes: false, color: "#3b7a3a", pot: "#d4a373", face: "cool",
+    distance: "Some influencer's apartment",
+    bio: "You moved me two inches to the left and I dropped three leaves. I'm not high maintenance, I just know what I want.",
+    tags: ["🏛️ Architectural", "📐 Very particular", "🛋️ Interior design icon"],
+    prompt: ["A non-negotiable", "The same spot. Forever. Don't touch me."] },
+  { name: "Zeke", age: 8, species: "ZZ Plant", type: "snake", color: "#2e6b3f", pot: "#1d3557", face: "cool",
+    distance: "A windowless office",
+    bio: "Thrives on neglect. Emotionally unavailable, but honestly so easy to be around.",
+    tags: ["🖤 Low light", "🧊 Chill", "🏆 Unkillable"],
+    prompt: ["My ideal Sunday", "Absolutely nothing. For several months."] },
+  { name: "Mimi", age: 1, species: "Mimosa Pudica", type: "fern", color: "#6aa86a", pot: "#f28482", face: "smitten",
+    distance: "1 bookshelf away",
+    bio: "I'm a sensitive plant. Literally, that's my name. Touch me and I fold right up. Take it slow.",
+    tags: ["🙈 Shy", "🫣 Touch-sensitive", "🌙 Closes up at night"],
+    prompt: ["Please do NOT", "Poke me just to see what happens. Everyone does that."] },
+  { name: "Daisy", age: 2, species: "Gerbera Daisy", type: "sunflower", petal: "#ff8fab", center: "#7a4b2a", pot: "#90be6d", face: "happy",
+    distance: "Grocery store bouquet aisle",
+    bio: "Cheerful to a fault. My friends say I'm 'a lot.' I call it blooming.",
+    tags: ["🌈 Optimist", "☀️ Sun lover", "💐 Bouquet regular"],
+    prompt: ["Most spontaneous thing I've done", "Ended up in a vase at a wedding. Didn't even know the couple."] },
+  { name: "Jade", age: 12, species: "Jade Plant", type: "succulent", color: "#4f8f5a", pot: "#c9ada7", face: "wink",
+    distance: "Grandma's house",
+    bio: "They say I bring good luck and money. Let's still split the check.",
+    tags: ["💰 Lucky", "🧓 Old soul", "🌳 Tiny tree aspirations"],
+    prompt: ["I want someone who", "Will still repot me when I'm 40."] },
+  { name: "Charlotte", age: 3, species: "Spider Plant", type: "aloe", color: "#a7c957", pot: "#6d597a", face: "happy",
+    distance: "Hanging basket, porch",
+    bio: "Full disclosure: I have a LOT of babies. They're literally hanging off me right now. Dealbreaker?",
+    tags: ["👶 Has kids", "🕸️ No actual spiders", "🌬️ Air purifier"],
+    prompt: ["Together we could", "Propagate. Just saying."] },
+  { name: "Olivia", age: 5, species: "Phalaenopsis Orchid", type: "tulip", petal: "#c77dff", pot: "#f1faee", face: "wink",
+    distance: "Fancy hotel lobby",
+    bio: "High maintenance and I know it. But when I bloom, I bloom for months.",
+    tags: ["💅 Fancy", "🚫 No ice cubes, please", "🌸 Long bloomer"],
+    prompt: ["I'll fall for you if", "You give me bark, not soil. I'm not an animal."] },
+  { name: "Rocco", age: 4, species: "Barrel Cactus", type: "cactus", variant: "barrel", color: "#6ba368", pot: "#e76f51", face: "smitten", petal: "#ffd23f",
+    distance: "Sunniest spot in the house",
+    bio: "Shorter than my profile pic suggests. Still the most chill guy on the windowsill.",
+    tags: ["🌞 Sunbather", "🎸 Desert rock", "🪴 Short king"],
+    prompt: ["Don't hate me if I", "Go dormant all winter. It's a whole vibe."] },
+  { name: "Gus", age: 3, species: "Venus Flytrap", type: "flytrap", color: "#88c057", pot: "#f4a261", face: "cool",
+    distance: "Science classroom",
+    bio: "Not to brag, but I'm 5-for-5 on flies this week. Looking for someone who appreciates a provider.",
+    tags: ["🏋️ Provider", "🍖 High protein", "⏱️ Fast reflexes"],
+    prompt: ["Fun fact about me", "I can count. Two touches and it's over."] },
+  { name: "Fernando", age: 6, species: "Maidenhair Fern", type: "fern", color: "#7bbf6a", pot: "#264653", face: "wink",
+    distance: "Steamy bathroom",
+    bio: "Hola. I'm delicate, I'm thirsty, and I'll die if you look at me wrong. Worth it.",
+    tags: ["💧 Always thirsty", "🥀 Delicate", "🌹 Muy romántico"],
+    prompt: ["I geek out on", "Humidity percentages. Ask me about my pebble tray."] },
+  { name: "Phil", age: 10, species: "Heartleaf Philodendron", type: "pothos", color: "#3a9d5d", pot: "#ffb4a2", face: "happy",
+    distance: "Your dentist's waiting room",
+    bio: "The friend everyone has. Reliable, easygoing, will grow literally anywhere.",
+    tags: ["🤝 Reliable", "🏠 Homebody", "🌿 Easy to love"],
+    prompt: ["My friends would describe me as", "'Oh! I forgot you were there.' In a nice way."] }
+];
+PROFILES.forEach((p, i) => { p.bg = BGS[i % BGS.length]; });
+
+const YOU = { type: "sprout", pot: "#ffffff", face: "smitten", bg: ["#e2f0cb", "#c7e3a6"] };
+const SPECIAL = Object.assign({ special: true, type: "cactus", color: "#5c9e5a", petal: "#ff5a7a", beard: true, pot: "#ff8fa3", face: "smitten", bg: ["#ffe0e9", "#ffc2d4"] }, ANNIVERSARY);
+
+const MATCH_TEXTS = [
+  n => `You and ${n} have photosynthesized feelings for each other.`,
+  n => `${n} swiped right too. Roots: officially tangled.`,
+  n => `You and ${n} like each other. The chlorophyll is real.`,
+  n => `${n} thinks you're un-be-leaf-able.`,
+  n => `You and ${n} are growing on each other.`
+];
+const LINES = [
+  "Are you a sunbeam? Because I've been leaning toward you all day.",
+  "You had me at 'well-draining soil.'",
+  "Is it hot in here or is it just the grow light?",
+  "I photosynthesize, but you're the reason I glow.",
+  "Let's skip the small talk. What's your watering schedule?",
+  "I'd never leave you on a cold windowsill.",
+  "You're un-be-leaf-able.",
+  "I think we could really grow together.",
+  "Wanna come back to my terrarium?",
+  "Aloe there 👋",
+  "I'm rooting for us.",
+  "We have great chemistry. Mostly chlorophyll.",
+  "Are you fertilizer? Because I'm growing feelings.",
+  "I'm not a cactus expert, but I know a sharp-dressed plant when I see one."
+];
+
+/* ===================== SVG plant drawings ===================== */
+let uid = 0;
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = v => Math.max(0, Math.min(255, v));
+  const r = c((n >> 16) + amt), g = c(((n >> 8) & 255) + amt), b = c((n & 255) + amt);
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+function isDark(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 110;
+}
+function bez(t, a, b, c, d) {
+  const u = 1 - t;
+  return [0, 1].map(i => u*u*u*a[i] + 3*u*u*t*b[i] + 3*u*t*t*c[i] + t*t*t*d[i]);
+}
+function leafPath(bx, tx, ty, w, base = 178) {
+  const m = (base + ty) / 2, s = (tx - bx) * 0.3;
+  return `M${bx - w} ${base} Q${bx - w + s} ${m} ${tx} ${ty} Q${bx + w + s} ${m} ${bx + w} ${base} Z`;
+}
+function smallLeaf(x, y, r, s, c) {
+  return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 0 C -12 -10 -12 -30 0 -40 C 12 -30 12 -10 0 0Z" fill="${c}"/><path d="M0 -2 L0 -34" stroke="${shade(c, -30)}" stroke-width="1.5"/></g>`;
+}
+function heartLeaf(x, y, r, s, c) {
+  return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 0 C -6 4 -18 2 -18 -10 C -18 -22 -6 -30 0 -38 C 6 -30 18 -22 18 -10 C 18 2 6 4 0 0 Z" fill="${c}"/><path d="M0 -2 L0 -32" stroke="${shade(c, -28)}" stroke-width="1.5"/></g>`;
+}
+function bigLeaf(x, y, rot, s, c, holes) {
+  const id = "ppm" + (++uid);
+  const shape = "M0 0 C -44 -4 -50 -64 0 -74 C 50 -64 44 -4 0 0 Z";
+  const slits = "M-46 -40 L-14 -38 M-48 -20 L-16 -22 M-40 -58 L-12 -52 M46 -40 L14 -38 M48 -20 L16 -22 M40 -58 L12 -52";
+  const mask = holes ? `<mask id="${id}" maskUnits="userSpaceOnUse" x="-60" y="-90" width="120" height="100"><rect x="-60" y="-90" width="120" height="100" fill="#fff"/><path d="${slits}" stroke="#000" stroke-width="5" stroke-linecap="round"/></mask>` : "";
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">${mask}<g${holes ? ` mask="url(#${id})"` : ""}><path d="${shape}" fill="${c}"/><path d="M0 -2 L0 -68" stroke="${shade(c, -28)}" stroke-width="2.5" stroke-linecap="round"/></g></g>`;
+}
+function flower(x, y, c) {
+  let s = "";
+  for (let i = 0; i < 5; i++) {
+    const a = i * 72 * Math.PI / 180;
+    s += `<circle cx="${(x + Math.sin(a) * 6).toFixed(1)}" cy="${(y - Math.cos(a) * 6).toFixed(1)}" r="5" fill="${c}"/>`;
+  }
+  return s + `<circle cx="${x}" cy="${y}" r="3.6" fill="#ffd23f"/>`;
+}
+function trap(x, y, r, flip, c) {
+  const red = "#e05265", tooth = shade(c, 50);
+  let lowT = "", upT = "";
+  for (let t = -14; t <= 16; t += 6) {
+    lowT += `M${t} 0 L${t + 1} -6 `;
+    upT += `M${t} -2 L${t + 1} 4 `;
+  }
+  return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${flip ? -1 : 1} 1)">
+    <path d="M-20 0 Q0 20 20 0 Z" fill="${c}"/><path d="M-16 1 Q0 13 16 1 Z" fill="${red}"/>
+    <path d="${lowT}" stroke="${tooth}" stroke-width="1.6" stroke-linecap="round"/>
+    <g transform="rotate(-30 -20 0)"><path d="M-20 -2 Q0 -22 20 -2 Z" fill="${c}"/><path d="M-16 -3 Q0 -15 16 -3 Z" fill="${red}"/>
+    <path d="${upT}" stroke="${tooth}" stroke-width="1.6" stroke-linecap="round"/></g></g>`;
+}
+
+const PLANTS = {
+  cactus(p) {
+    const c = p.color, d = shade(c, -28), sp = "#fff8e1";
+    if (p.variant === "barrel") {
+      return [`<ellipse cx="100" cy="138" rx="44" ry="42" fill="${c}"/>
+        <g stroke="${d}" stroke-width="2" fill="none" opacity=".55"><path d="M100 98 V178"/><path d="M84 100 Q70 138 84 176"/><path d="M116 100 Q130 138 116 176"/><path d="M70 108 Q56 140 70 170"/><path d="M130 108 Q144 140 130 170"/></g>
+        <g stroke="${sp}" stroke-width="1.6" stroke-linecap="round">${[[84,118],[116,118],[100,130],[84,150],[116,150],[70,138],[130,138],[100,160]].map(([x, y]) => `<path d="M${x} ${y} l-4 -4 M${x} ${y} l4 -4 M${x} ${y} v-5"/>`).join("")}</g>
+        ${flower(88, 98, p.petal)}${flower(110, 96, p.petal)}`];
+    }
+    return [`<path d="M86 132 H72 Q62 132 62 122 V102" stroke="${c}" stroke-width="18" stroke-linecap="round" fill="none"/>
+      <path d="M114 116 H128 Q138 116 138 106 V88" stroke="${c}" stroke-width="18" stroke-linecap="round" fill="none"/>
+      <rect x="80" y="64" width="40" height="116" rx="20" fill="${c}"/>
+      <g stroke="${d}" stroke-width="2" opacity=".5" stroke-linecap="round"><path d="M100 74 V172"/><path d="M90 80 V172"/><path d="M110 80 V172"/></g>
+      <g stroke="${sp}" stroke-width="1.6" stroke-linecap="round">${[[85,92],[115,104],[85,124],[115,146],[85,158],[62,110],[138,94],[100,90],[100,140]].map(([x, y]) => `<path d="M${x} ${y} l-4 -3 M${x} ${y} l4 -3"/>`).join("")}</g>
+      ${flower(100, 62, p.petal)}`];
+  },
+  succulent(p) {
+    const c = p.color, o = shade(c, -20), i = shade(c, 20);
+    let s = "";
+    for (const a of [-78, -52, -26, 0, 26, 52, 78]) s += `<ellipse cx="100" cy="128" rx="12" ry="34" fill="${o}" transform="rotate(${a} 100 165)"/>`;
+    for (const a of [-45, -15, 15, 45]) s += `<ellipse cx="100" cy="138" rx="10" ry="24" fill="${c}" transform="rotate(${a} 100 165)"/>`;
+    for (const a of [-12, 12]) s += `<ellipse cx="100" cy="146" rx="8" ry="16" fill="${i}" transform="rotate(${a} 100 165)"/>`;
+    return [s];
+  },
+  snake(p) {
+    const c = p.color, e = p.edge || shade(c, -22);
+    const L = [[80, 62, 80, 8], [90, 82, 40, 9], [102, 106, 24, 10], [114, 128, 48, 9], [122, 142, 86, 8]];
+    return [L.map(([bx, tx, ty, w]) => `<path d="${leafPath(bx, tx, ty, w)}" fill="${c}" stroke="${e}" stroke-width="2.5" stroke-linejoin="round"/>`).join("")];
+  },
+  aloe(p) {
+    const c = p.color, e = shade(c, -24);
+    const L = [[86, 28, 98, 8], [92, 50, 56, 9], [100, 98, 32, 10], [108, 148, 54, 9], [114, 172, 96, 8]];
+    return [L.map(([bx, tx, ty, w]) => `<path d="${leafPath(bx, tx, ty, w)}" fill="${c}" stroke="${e}" stroke-width="2" stroke-linejoin="round"/>`).join("")];
+  },
+  monstera(p) {
+    const c = p.color, st = shade(c, -30), h = p.holes !== false;
+    const leaves = [[64, 128, -42, 1], [136, 118, 38, 1.05], [100, 104, -4, .9]];
+    const stems = leaves.map(([x, y]) => `<path d="M100 178 Q${(100 + x) / 2} ${y + 30} ${x} ${y}" stroke="${st}" stroke-width="4" fill="none" stroke-linecap="round"/>`).join("");
+    return [stems + leaves.map(([x, y, r, s]) => bigLeaf(x, y, r, s, c, h)).join("")];
+  },
+  sunflower(p) {
+    const pc = p.petal, ctr = p.center || "#6b4226";
+    let s = `<path d="M100 178 Q96 130 100 84" stroke="#4a8f3c" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+    s += smallLeaf(99, 150, -62, 1.05, "#5aa54a") + smallLeaf(100, 136, 60, .95, "#5aa54a");
+    for (let i = 0; i < 16; i++) s += `<ellipse cx="100" cy="56" rx="8" ry="20" fill="${pc}" stroke="${shade(pc, -22)}" stroke-width="1" transform="rotate(${i * 22.5} 100 80)"/>`;
+    s += `<circle cx="100" cy="80" r="20" fill="${ctr}"/>`;
+    for (let i = 0; i < 12; i++) {
+      const a = i * 2.4, r = 3 + i * 1.2;
+      s += `<circle cx="${(100 + Math.cos(a) * r).toFixed(1)}" cy="${(80 + Math.sin(a) * r).toFixed(1)}" r="1.6" fill="${shade(ctr, -30)}"/>`;
+    }
+    return [s];
+  },
+  fern(p) {
+    const c = p.color, st = shade(c, -32);
+    let s = "";
+    for (const [a, len] of [[-62, .8], [-36, .95], [-12, 1], [14, 1], [38, .92], [64, .78]]) {
+      let g = `<path d="M100 178 Q103 ${178 - 60 * len} 100 ${178 - 120 * len}" stroke="${st}" stroke-width="2.5" fill="none"/>`;
+      const n = 9;
+      for (let i = 1; i <= n; i++) {
+        const y = (178 - i * (120 * len) / (n + 1) - 4).toFixed(1);
+        const sz = (1 - i / (n + 2)) * 11 + 3, off = (sz * .8).toFixed(1);
+        g += `<ellipse cx="${100 - off}" cy="${y}" rx="${sz.toFixed(1)}" ry="${(sz * .38).toFixed(1)}" fill="${c}" transform="rotate(28 ${100 - off} ${y})"/>`;
+        g += `<ellipse cx="${100 + +off}" cy="${y}" rx="${sz.toFixed(1)}" ry="${(sz * .38).toFixed(1)}" fill="${c}" transform="rotate(-28 ${100 + +off} ${y})"/>`;
+      }
+      s += `<g transform="rotate(${a} 100 178)">${g}</g>`;
+    }
+    return [s];
+  },
+  tulip(p) {
+    const pc = p.petal, st = "#4f8f3f";
+    const fl = [[72, 96], [100, 70], [128, 92]];
+    let s = `<path d="${leafPath(88, 56, 112, 7)}" fill="#5fa04c"/><path d="${leafPath(112, 148, 104, 7)}" fill="#5fa04c"/>`;
+    s += fl.map(([x, y]) => `<path d="M100 178 Q${(100 + x) / 2} ${(178 + y) / 2} ${x} ${y + 20}" stroke="${st}" stroke-width="4" fill="none"/>`).join("");
+    s += fl.map(([x, y]) => `<path d="M${x - 14} ${y} Q${x - 16} ${y + 24} ${x} ${y + 25} Q${x + 16} ${y + 24} ${x + 14} ${y} L${x + 7} ${y + 9} L${x} ${y - 4} L${x - 7} ${y + 9} Z" fill="${pc}" stroke="${shade(pc, -28)}" stroke-width="1.5" stroke-linejoin="round"/>`).join("");
+    return [s];
+  },
+  flytrap(p) {
+    const c = p.color, st = shade(c, -30);
+    const traps = [[64, 108, -10, true], [136, 96, 10, false], [100, 74, -6, false]];
+    const stems = traps.map(([x, y]) => `<path d="M100 178 Q${(100 + x) / 2} ${y + 50} ${x} ${y + 8}" stroke="${st}" stroke-width="4" fill="none" stroke-linecap="round"/>`).join("");
+    return [stems + traps.map(([x, y, r, f]) => trap(x, y, r, f, c)).join("")];
+  },
+  pothos(p) {
+    const c = p.color, st = shade(c, -35);
+    let back = "";
+    for (const [x, y, r, s] of [[86, 176, -48, .9], [114, 176, 46, .95], [94, 172, -16, 1], [108, 170, 14, .85], [100, 176, -2, .75]]) back += heartLeaf(x, y, r, s, c);
+    let front = "";
+    const vines = [
+      { pts: [[72, 178], [42, 182], [32, 210], [40, 246]], rot: [-110, -150] },
+      { pts: [[128, 178], [158, 184], [170, 206], [162, 240]], rot: [110, 150] }
+    ];
+    for (const v of vines) {
+      const [a, b, cc, d] = v.pts;
+      front += `<path d="M${a} C${b} ${cc} ${d}" stroke="${st}" stroke-width="2.5" fill="none"/>`;
+      [.2, .45, .7, .92].forEach((t, i) => {
+        const [x, y] = bez(t, a, b, cc, d);
+        front += heartLeaf(x.toFixed(1), y.toFixed(1), v.rot[i % 2], .5, i % 2 ? shade(c, 12) : c);
+      });
+    }
+    return [back, front];
+  },
+  sprout() {
+    return [`<path d="M100 178 Q97 142 100 112" stroke="#4f8f3f" stroke-width="5" fill="none" stroke-linecap="round"/>
+      ${smallLeaf(100, 116, -58, 1.15, "#6cc04a")}${smallLeaf(100, 116, 58, 1.15, "#7fd35a")}`];
+  },
+  couple() {
+    return [`<path d="M86 178 Q78 132 95 100" stroke="#4f8f3f" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M114 178 Q122 132 105 100" stroke="#4f8f3f" stroke-width="5" fill="none" stroke-linecap="round"/>
+      ${smallLeaf(84, 146, -62, 1, "#6cc04a")}${smallLeaf(116, 146, 62, 1, "#7fd35a")}
+      ${smallLeaf(95, 102, -34, .9, "#7fd35a")}${smallLeaf(105, 102, 34, .9, "#6cc04a")}
+      <g class="heart-beat"><path transform="translate(100 72) scale(3)" d="M0 4 C-7 -1 -4 -7 0 -3 C4 -7 7 -1 0 4Z" fill="#ff5a7a"/></g>`];
+  }
+};
+
+function faceSvg(kind, k, beard) {
+  const beardSvg = beard ? `<path d="M75 206 Q75 229 100 231 Q125 229 125 206 Q119 221 100 222 Q81 221 75 206 Z" fill="#6b4423"/><path d="M91 212 Q95 208.5 100 210.5 Q105 208.5 109 212 Q104.5 214 100 212.8 Q95.5 214 91 212 Z" fill="#6b4423"/><g fill="#8a5a33">${[[82,220],[90,226],[100,228],[110,226],[118,220],[86,214],[114,214]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.1"/>`).join("")}</g>` : "";
+  const blush = beard ? "" : `<ellipse cx="78" cy="214" rx="6" ry="3.5" fill="#ff8fa3" opacity=".6"/><ellipse cx="122" cy="214" rx="6" ry="3.5" fill="#ff8fa3" opacity=".6"/>`;
+  const smile = `<path d="M93 213 Q100 220 107 213" stroke="${k}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const dot = x => `<circle cx="${x}" cy="205" r="3.6" fill="${k}"/>`;
+  const happyEye = x => `<path d="M${x - 4} 206 Q${x} 200 ${x + 4} 206" stroke="${k}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const shut = x => `<path d="M${x - 4} 204 Q${x} 208 ${x + 4} 204" stroke="${k}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const heart = x => `<path transform="translate(${x} 205) scale(1.1)" d="M0 4 C-7 -1 -4 -7 0 -3 C4 -7 7 -1 0 4Z" fill="#e63946"/>`;
+  return beardSvg + eyesAndMouth();
+  function eyesAndMouth() {
+  switch (kind) {
+    case "wink": return dot(88) + happyEye(112) + smile + blush;
+    case "cool": return `<g fill="#151515"><rect x="77" y="199" width="19" height="11" rx="4"/><rect x="104" y="199" width="19" height="11" rx="4"/><rect x="95" y="201.5" width="10" height="2.5"/></g><path d="M81 202 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6" stroke-linecap="round"/><path d="M108 202 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6" stroke-linecap="round"/>` + smile;
+    case "smitten": return heart(88) + heart(112) + smile + blush;
+    case "sleepy": return shut(88) + shut(112) + `<ellipse cx="100" cy="215" rx="3" ry="2.6" fill="${k}"/>` + blush;
+    default: return dot(88) + dot(112) + smile + blush;
+  }
+  }
+}
+
+function art(p) {
+  const [back, front = ""] = PLANTS[p.type](p);
+  const pot = p.pot, ink = isDark(pot) ? "#ffffff" : "#2b2b2b";
+  return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="100" cy="236" rx="46" ry="5" fill="#000" opacity=".08"/>
+    ${back}
+    <path d="M64 186 L136 186 L128 230 Q127 235 122 235 L78 235 Q73 235 72 230 Z" fill="${pot}" stroke="${shade(pot, -24)}" stroke-width="1.5"/>
+    <rect x="56" y="172" width="88" height="18" rx="5" fill="${shade(pot, -14)}" stroke="${shade(pot, -30)}" stroke-width="1.5"/>
+    ${faceSvg(p.face, ink, p.beard)}
+    ${front}
+  </svg>`;
+}
+
+/* ===================== App logic ===================== */
+const $ = s => document.querySelector(s);
+const deckEl = $("#deck");
+let queue = [], stack = [], matches = [];
+let swipes = 0, likes = 0, busy = false;
+let specialDue = ANNIVERSARY.enabled ? ANNIVERSARY.showAfterSwipes : Infinity;
+let specialMatched = false;
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function nextProfile() {
+  if (swipes + stack.length >= specialDue && !specialMatched) {
+    specialDue = Infinity;
+    return SPECIAL;
+  }
+  if (!queue.length) {
+    const visible = new Set(stack.map(c => c.p));
+    queue = shuffle(PROFILES.filter(p => !visible.has(p)));
+  }
+  return queue.shift();
+}
+
+function cardEl(p) {
+  const el = document.createElement("article");
+  el.className = "card";
+  el.style.background = `linear-gradient(165deg, ${p.bg[0]}, ${p.bg[1]})`;
+  el.innerHTML = `
+    <div class="art">${art(p)}</div>
+    <div class="stamp like">LIKE</div>
+    <div class="stamp nope">NOPE</div>
+    <div class="stamp super">SUPER<br>LIKE</div>
+    <div class="info">
+      <h2>${p.name} <span>${p.age}</span></h2>
+      <div class="meta"><span>🌱 ${p.species}</span><span>📍 ${p.distance}</span></div>
+      <p class="bio">${p.bio}</p>
+      <div class="more">
+        <div class="tags">${p.tags.map(t => `<span>${t}</span>`).join("")}</div>
+        <div class="prompt"><small>${p.prompt[0]}</small><div>${p.prompt[1]}</div></div>
+      </div>
+      <div class="hint"></div>
+    </div>`;
+  return el;
+}
+
+function addCardBottom() {
+  const p = nextProfile();
+  const el = cardEl(p);
+  deckEl.prepend(el);
+  stack.push({ p, el });
+  attachDrag(el);
+}
+function layout() {
+  stack.forEach((c, i) => {
+    c.el.classList.remove("pos-0", "pos-1", "pos-2");
+    c.el.classList.add("pos-" + Math.min(i, 2));
+  });
+}
+
+function setStamps(el, dx, dy) {
+  const cl = v => Math.max(0, Math.min(1, v));
+  el.querySelector(".like").style.opacity = cl(dx / 90);
+  el.querySelector(".nope").style.opacity = cl(-dx / 90);
+  el.querySelector(".super").style.opacity = cl((-dy - Math.abs(dx)) / 90);
+}
+
+function attachDrag(el) {
+  let d = null;
+  el.addEventListener("pointerdown", e => {
+    if (busy || el !== stack[0]?.el) return;
+    el.setPointerCapture(e.pointerId);
+    d = { x: e.clientX, y: e.clientY, dx: 0, dy: 0, moved: false, hist: [[e.clientX, e.clientY, performance.now()]] };
+    el.style.transition = "none";
+  });
+  el.addEventListener("pointermove", e => {
+    if (!d) return;
+    d.dx = e.clientX - d.x; d.dy = e.clientY - d.y;
+    if (Math.hypot(d.dx, d.dy) > 8) d.moved = true;
+    d.hist.push([e.clientX, e.clientY, performance.now()]);
+    if (d.hist.length > 5) d.hist.shift();
+    el.style.transform = `translate(${d.dx}px, ${d.dy}px) rotate(${d.dx * 0.06}deg)`;
+    setStamps(el, d.dx, d.dy);
+    const next = stack[1]?.el;
+    if (next) {
+      const prog = Math.min(1, Math.hypot(d.dx, d.dy) / 150);
+      next.style.transition = "none";
+      next.style.transform = `scale(${0.94 + 0.06 * prog})`;
+    }
+  });
+  const end = () => {
+    if (!d) return;
+    const { dx, dy, moved, hist } = d;
+    d = null;
+    const next = stack[1]?.el;
+    if (!moved) {
+      el.style.transition = ""; el.style.transform = "";
+      if (next) { next.style.transition = ""; next.style.transform = ""; }
+      el.classList.toggle("expanded");
+      return;
+    }
+    const [x0, y0, t0] = hist[0], [x1, y1, t1] = hist[hist.length - 1];
+    const dt = Math.max(1, t1 - t0), vx = (x1 - x0) / dt, vy = (y1 - y0) / dt;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    el.dataset.dx = dx; el.dataset.dy = dy;
+    if (dx > w * 0.28 || (vx > 0.5 && dx > 40)) swipe("right");
+    else if (dx < -w * 0.28 || (vx < -0.5 && dx < -40)) swipe("left");
+    else if ((dy < -h * 0.2 || (vy < -0.5 && dy < -40)) && Math.abs(dx) < w * 0.3) swipe("up");
+    else {
+      el.style.transition = "transform .35s cubic-bezier(.2,.9,.3,1.3)";
+      el.style.transform = "";
+      setStamps(el, 0, 0);
+      if (next) { next.style.transition = ""; next.style.transform = ""; }
+    }
+  };
+  el.addEventListener("pointerup", end);
+  el.addEventListener("pointercancel", end);
+}
+
+function swipe(dir) {
+  if (busy || !stack.length) return;
+  busy = true;
+  const top = stack.shift();
+  const el = top.el;
+  const W = window.innerWidth, H = window.innerHeight;
+  const dx = +el.dataset.dx || 0, dy = +el.dataset.dy || 0;
+  el.querySelector(dir === "right" ? ".like" : dir === "left" ? ".nope" : ".super").style.opacity = 1;
+  el.style.transition = "transform .45s cubic-bezier(.3,.6,.4,1)";
+  el.style.pointerEvents = "none";
+  requestAnimationFrame(() => {
+    if (dir === "right") el.style.transform = `translate(${W + 200}px, ${dy + 60}px) rotate(30deg)`;
+    else if (dir === "left") el.style.transform = `translate(${-W - 200}px, ${dy + 60}px) rotate(-30deg)`;
+    else el.style.transform = `translate(${dx}px, ${-H - 200}px) rotate(${dx * 0.05}deg)`;
+  });
+
+  swipes++;
+  stack.forEach(c => { c.el.style.transition = ""; c.el.style.transform = ""; });
+  addCardBottom();
+  layout();
+
+  let matched = false;
+  const p = top.p;
+  if (p.special) {
+    if (dir === "left") { specialDue = swipes + 3; p.bio = ANNIVERSARY.secondChanceBio; }
+    else { matched = true; specialMatched = true; }
+  } else if (dir !== "left") {
+    likes++;
+    matched = Math.random() < (dir === "up" ? 0.8 : 0.4) || (likes >= 3 && matches.length === 0);
+  }
+
+  setTimeout(() => {
+    el.remove();
+    busy = false;
+    if (matched) showMatch(p);
+  }, 400);
+}
+
+/* ===================== Match + extras ===================== */
+let currentMatch = null;
+
+function showMatch(p) {
+  currentMatch = p;
+  if (!matches.some(m => m.p === p)) {
+    matches.unshift({ p, line: pick(LINES) });
+    const badge = $("#badge");
+    badge.textContent = matches.length;
+    badge.classList.remove("bump"); void badge.offsetWidth; badge.classList.add("bump");
+  }
+  $("#matchTitle").textContent = p.special ? ANNIVERSARY.matchTitle : "It's a Match!";
+  $("#matchText").textContent = p.special ? ANNIVERSARY.matchText : pick(MATCH_TEXTS)(p.name);
+  const you = $("#avYou"), them = $("#avThem");
+  you.innerHTML = art(YOU); you.style.background = `linear-gradient(165deg, ${YOU.bg[0]}, ${YOU.bg[1]})`;
+  them.innerHTML = art(p); them.style.background = `linear-gradient(165deg, ${p.bg[0]}, ${p.bg[1]})`;
+  $("#sendBtn").style.display = p.special ? "none" : "";
+  $("#keepBtn").textContent = p.special ? "Keep swiping 💚" : "Keep swiping";
+  // restart avatar animations
+  [you, them].forEach(a => { a.style.animation = "none"; void a.offsetWidth; a.style.animation = ""; });
+  $("#match").classList.add("show");
+  rain(p.special ? ["💚", "💕", "🌱", "🌸", "💖"] : ["🍃", "🌿", "🌱", "🌸", "💚"], p.special ? 50 : 28);
+}
+function closeMatch() {
+  $("#match").classList.remove("show");
+  $("#falling").innerHTML = "";
+}
+function rain(emojis, n) {
+  const box = $("#falling");
+  box.innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement("span");
+    s.textContent = pick(emojis);
+    s.style.left = Math.random() * 100 + "%";
+    s.style.fontSize = 16 + Math.random() * 22 + "px";
+    s.style.animationDuration = 2.6 + Math.random() * 2.4 + "s";
+    s.style.animationDelay = Math.random() * 1.6 + "s";
+    box.appendChild(s);
+  }
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+function openSheet() {
+  const list = $("#matchList");
+  list.innerHTML = matches.map(m => `
+    <li>
+      <div class="mini" style="background:linear-gradient(165deg, ${m.p.bg[0]}, ${m.p.bg[1]})">${art(m.p)}</div>
+      <div><strong>${m.p.name}</strong><span>${m.p.special ? "💚 " + ANNIVERSARY.matchText : "“" + m.line + "”"}</span></div>
+    </li>`).join("");
+  $("#emptyMsg").style.display = matches.length ? "none" : "";
+  $("#sheet").classList.add("open");
+  $("#sheetBg").classList.add("open");
+}
+function closeSheet() {
+  $("#sheet").classList.remove("open");
+  $("#sheetBg").classList.remove("open");
+}
+
+/* ===================== Wire up ===================== */
+$("#introArt").innerHTML = art(Object.assign({}, YOU, { face: "happy" }));
+$("#startBtn").onclick = () => $("#intro").classList.remove("show");
+$("#nopeBtn").onclick = () => swipe("left");
+$("#likeBtn").onclick = () => swipe("right");
+$("#superBtn").onclick = () => swipe("up");
+$("#keepBtn").onclick = closeMatch;
+$("#sendBtn").onclick = () => {
+  const name = currentMatch?.name;
+  closeMatch();
+  toast(`You sent ${name}: “${pick(LINES)}”`);
+};
+$("#matchesBtn").onclick = openSheet;
+$("#closeSheet").onclick = closeSheet;
+$("#sheetBg").onclick = closeSheet;
+
+document.addEventListener("keydown", e => {
+  if ($("#intro").classList.contains("show") || $("#match").classList.contains("show")) {
+    if (e.key === "Enter" || e.key === "Escape") { $("#intro").classList.remove("show"); closeMatch(); }
+    return;
+  }
+  if (e.key === "ArrowLeft") swipe("left");
+  else if (e.key === "ArrowRight") swipe("right");
+  else if (e.key === "ArrowUp") swipe("up");
+  else if (e.key === "Escape") closeSheet();
+});
+
+queue = shuffle(PROFILES.slice());
+for (let i = 0; i < 3; i++) addCardBottom();
+layout();
+</script>
+</body>
+</html>
