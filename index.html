@@ -289,7 +289,7 @@
    ===================================================================== */
 const ANNIVERSARY = {
   enabled: true,
-  showAfterSwipes: 10,
+  showAfterSwipes: 5,
   name: "Mike",
   age: "∞",
   species: "Human (allegedly)",
@@ -423,7 +423,7 @@ const PROFILES = [
 PROFILES.forEach((p, i) => { p.bg = BGS[i % BGS.length]; });
 
 const YOU = { type: "sprout", pot: "#ffffff", face: "smitten", bg: ["#e2f0cb", "#c7e3a6"] };
-const SPECIAL = Object.assign({ special: true, type: "cactus", color: "#5c9e5a", petal: "#ff5a7a", beard: true, pot: "#ff8fa3", face: "smitten", bg: ["#ffe0e9", "#ffc2d4"] }, ANNIVERSARY);
+const SPECIAL = Object.assign({ special: true, type: "mike", portrait: true, bg: ["#b9cde0", "#ffcf9a"] }, ANNIVERSARY);
 
 const MATCH_TEXTS = [
   n => `You and ${n} have photosynthesized feelings for each other.`,
@@ -611,6 +611,36 @@ const PLANTS = {
     return [`<path d="M100 178 Q97 142 100 112" stroke="#4f8f3f" stroke-width="5" fill="none" stroke-linecap="round"/>
       ${smallLeaf(100, 116, -58, 1.15, "#6cc04a")}${smallLeaf(100, 116, 58, 1.15, "#7fd35a")}`];
   },
+  mike() {
+    const skin = "#f3c9a6", skinD = "#e2ad88", hair = "#4a3426", jacket = "#26262b", seam = "#3d3d44", shirt = "#22304f";
+    const flowers = [[94, 184], [105, 196], [95, 212], [106, 226], [98, 236], [101, 172]].map(([x, y], i) =>
+      `<circle cx="${x}" cy="${y}" r="2.6" fill="#f08a7e"/><ellipse cx="${x + (i % 2 ? -4 : 4)}" cy="${y + 4}" rx="3" ry="1.4" fill="#f6b3a7" transform="rotate(${i % 2 ? 30 : -30} ${x} ${y})"/>`).join("");
+    return [`
+      <circle cx="100" cy="98" r="78" fill="#fff" opacity=".22"/>
+      <path d="M20 240 Q24 186 70 170 Q86 165 100 167 Q114 165 130 170 Q176 186 180 240 Z" fill="${jacket}"/>
+      <g stroke="${seam}" stroke-width="2" fill="none" stroke-linecap="round">
+        <path d="M36 196 Q54 180 74 176"/><path d="M33 205 Q52 189 73 184"/><path d="M164 196 Q146 180 126 176"/><path d="M167 205 Q148 189 127 184"/>
+      </g>
+      <path d="M44 214 L72 212" stroke="#5a5a62" stroke-width="2.5" stroke-linecap="round"/><rect x="69" y="211" width="3.5" height="8" rx="1" fill="#8c8c94"/>
+      <rect x="86" y="132" width="28" height="40" rx="8" fill="${skinD}"/>
+      <path d="M85 166 L115 166 L109 240 L91 240 Z" fill="${shirt}"/>
+      ${flowers}
+      <path d="M84 162 L100 178 L88 186 Z" fill="${shirt}"/><path d="M116 162 L100 178 L112 186 Z" fill="${shirt}"/>
+      <path d="M85 166 L91 240 M115 166 L109 240" stroke="#3a3a42" stroke-width="3"/>
+      <g transform="translate(103 200) rotate(8)"><circle cx="-6" cy="0" r="5.5" fill="#1d2b2a"/><circle cx="6" cy="0" r="5.5" fill="#1d2b2a"/><path d="M-1 -1 Q0 -3 1 -1" stroke="#1d2b2a" stroke-width="2" fill="none"/><path d="M-8 -2 l3 -1.5 M4 -2 l3 -1.5" stroke="#9fd3d0" stroke-width="1.2" stroke-linecap="round"/></g>
+      <ellipse cx="58" cy="98" rx="7.5" ry="11" fill="${skinD}"/><ellipse cx="142" cy="98" rx="7.5" ry="11" fill="${skinD}"/>
+      <ellipse cx="100" cy="90" rx="42" ry="50" fill="${skin}"/>
+      <ellipse cx="86" cy="56" rx="14" ry="7" fill="#fff" opacity=".4" transform="rotate(-20 86 56)"/>
+      <path d="M59 92 Q59 132 78 143 Q90 153 100 153 Q110 153 122 143 Q141 132 141 92 Q137 110 129 116 Q116 111 100 112 Q84 111 71 116 Q63 110 59 92 Z" fill="${hair}"/>
+      <path d="M82 121 Q90 112 100 115 Q110 112 118 121 Q110 119 100 120 Q90 119 82 121 Z" fill="${hair}"/>
+      <path d="M86 123 Q100 138 114 123 Q100 127 86 123 Z" fill="#fff" stroke="#6b3328" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M76 80 Q84 74 93 78" stroke="${hair}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M107 78 Q116 74 124 80" stroke="${hair}" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M78 93 Q84 86 90 93" stroke="#2b2b2b" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M110 93 Q116 86 122 93" stroke="#2b2b2b" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M100 95 Q96 105 98 108 Q102 110 105 106" stroke="${skinD}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="74" cy="104" rx="6" ry="3.5" fill="#ff8fa3" opacity=".45"/><ellipse cx="126" cy="104" rx="6" ry="3.5" fill="#ff8fa3" opacity=".45"/>`];
+  },
   couple() {
     return [`<path d="M86 178 Q78 132 95 100" stroke="#4f8f3f" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M114 178 Q122 132 105 100" stroke="#4f8f3f" stroke-width="5" fill="none" stroke-linecap="round"/>
@@ -620,16 +650,13 @@ const PLANTS = {
   }
 };
 
-function faceSvg(kind, k, beard) {
-  const beardSvg = beard ? `<path d="M75 206 Q75 229 100 231 Q125 229 125 206 Q119 221 100 222 Q81 221 75 206 Z" fill="#6b4423"/><path d="M91 212 Q95 208.5 100 210.5 Q105 208.5 109 212 Q104.5 214 100 212.8 Q95.5 214 91 212 Z" fill="#6b4423"/><g fill="#8a5a33">${[[82,220],[90,226],[100,228],[110,226],[118,220],[86,214],[114,214]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.1"/>`).join("")}</g>` : "";
-  const blush = beard ? "" : `<ellipse cx="78" cy="214" rx="6" ry="3.5" fill="#ff8fa3" opacity=".6"/><ellipse cx="122" cy="214" rx="6" ry="3.5" fill="#ff8fa3" opacity=".6"/>`;
+function faceSvg(kind, k) {
+  const blush = `<ellipse cx="78" cy="214" rx="6" ry="3.5" fill="#ff8fa3" opacity=".6"/><ellipse cx="122" cy="214" rx="6" ry="3.5" fill="#ff8fa3" opacity=".6"/>`;
   const smile = `<path d="M93 213 Q100 220 107 213" stroke="${k}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
   const dot = x => `<circle cx="${x}" cy="205" r="3.6" fill="${k}"/>`;
   const happyEye = x => `<path d="M${x - 4} 206 Q${x} 200 ${x + 4} 206" stroke="${k}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
   const shut = x => `<path d="M${x - 4} 204 Q${x} 208 ${x + 4} 204" stroke="${k}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
   const heart = x => `<path transform="translate(${x} 205) scale(1.1)" d="M0 4 C-7 -1 -4 -7 0 -3 C4 -7 7 -1 0 4Z" fill="#e63946"/>`;
-  return beardSvg + eyesAndMouth();
-  function eyesAndMouth() {
   switch (kind) {
     case "wink": return dot(88) + happyEye(112) + smile + blush;
     case "cool": return `<g fill="#151515"><rect x="77" y="199" width="19" height="11" rx="4"/><rect x="104" y="199" width="19" height="11" rx="4"/><rect x="95" y="201.5" width="10" height="2.5"/></g><path d="M81 202 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6" stroke-linecap="round"/><path d="M108 202 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6" stroke-linecap="round"/>` + smile;
@@ -637,18 +664,18 @@ function faceSvg(kind, k, beard) {
     case "sleepy": return shut(88) + shut(112) + `<ellipse cx="100" cy="215" rx="3" ry="2.6" fill="${k}"/>` + blush;
     default: return dot(88) + dot(112) + smile + blush;
   }
-  }
 }
 
 function art(p) {
   const [back, front = ""] = PLANTS[p.type](p);
+  if (p.portrait) return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${back}</svg>`;
   const pot = p.pot, ink = isDark(pot) ? "#ffffff" : "#2b2b2b";
   return `<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <ellipse cx="100" cy="236" rx="46" ry="5" fill="#000" opacity=".08"/>
     ${back}
     <path d="M64 186 L136 186 L128 230 Q127 235 122 235 L78 235 Q73 235 72 230 Z" fill="${pot}" stroke="${shade(pot, -24)}" stroke-width="1.5"/>
     <rect x="56" y="172" width="88" height="18" rx="5" fill="${shade(pot, -14)}" stroke="${shade(pot, -30)}" stroke-width="1.5"/>
-    ${faceSvg(p.face, ink, p.beard)}
+    ${faceSvg(p.face, ink)}
     ${front}
   </svg>`;
 }
